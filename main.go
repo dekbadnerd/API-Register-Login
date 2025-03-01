@@ -1,14 +1,12 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"os"
-
+	"github.com/dekbadnerd/api-register-login/Controller/auth"
+	"github.com/dekbadnerd/api-register-login/orm"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
-	"gorm.io/driver/mysql"
+
+	"github.com/gin-contrib/cors"
 )
 
 // Binding from JSON
@@ -28,35 +26,10 @@ type User struct {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error Loading .env file")
-	}
-
-	dbUsername := os.Getenv("DB_USERNAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-
-	dsn := dbUsername + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?parseTime=true"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("Failed to connect to database!")
-	}
-	db.AutoMigrate(&User{})
+	orm.InitDB()
 
 	r := gin.Default()
-	r.POST("/register", func(c *gin.Context) {
-		var json Register
-		if err := c.ShouldBindJSON(&json); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(200, gin.H{
-			"register": json,
-		})
-	})
+	r.Use(cors.Default())
+	r.POST("/register", auth.Register)
 	r.Run("localhost:8080")
 }
