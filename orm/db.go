@@ -29,5 +29,7 @@ func InitDB() {
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
+
+	//Mirage the schema
 	Db.AutoMigrate(&User{})
 }
